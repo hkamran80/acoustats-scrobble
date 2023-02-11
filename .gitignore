@@ -7,7 +7,7 @@
 *.dll
 *.so
 *.dylib
-playlist-duplicator
+acoustats-scrobble
 
 # Test binary, built with `go test -c`
 *.test
