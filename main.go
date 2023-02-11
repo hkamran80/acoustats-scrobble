@@ -43,10 +43,8 @@ type TrackDetails struct {
 }
 
 type DBRow struct {
-	ID       int32     `db:"id"`
-	URI      string    `db:"uri"`
-	PlayedAt string    `db:"played_at"`
-	UserId   uuid.UUID `db:"user_id"`
+	URI      string `db:"uri"`
+	PlayedAt string `db:"played_at"`
 }
 
 func Contains(s []*DBRow, track TrackDetails) bool {
@@ -118,7 +116,7 @@ func main() {
 	}
 
 	var dbTrackHistory []*DBRow
-	rows, _ := conn.Query(context.Background(), `SELECT * FROM `+os.Getenv("DB_TABLE_NAME")+` WHERE user_id = ($1) ORDER BY played_at DESC LIMIT 50;`, userId)
+	rows, _ := conn.Query(context.Background(), `SELECT uri, played_at FROM `+os.Getenv("DB_TABLE_NAME")+` WHERE user_id = ($1) ORDER BY played_at DESC LIMIT 50;`, userId)
 	if err := pgxscan.ScanAll(&dbTrackHistory, rows); err != nil {
 		log.Fatal(err)
 	}
