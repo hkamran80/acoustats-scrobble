@@ -1,4 +1,4 @@
-module hkamran80/acoustats/time
+module hkamran80/acoustats/scrobble
 
 go 1.19
 
