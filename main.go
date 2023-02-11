@@ -29,6 +29,7 @@ import (
 
 	"log"
 
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
@@ -43,9 +44,16 @@ type TrackDetails struct {
 	PlayedAt time.Time
 }
 
-func Contains(s []spotify.ID, str spotify.ID) bool {
+type DBRow struct {
+	ID       int8      `db:"id"`
+	URI      string    `db:"uri"`
+	PlayedAt string    `db:"played_at"`
+	UserId   uuid.UUID `db:"user_id"`
+}
+
+func Contains(s []*DBRow, track TrackDetails) bool {
 	for _, v := range s {
-		if v == str {
+		if v.URI == string(track.URI) && v.PlayedAt == track.PlayedAt.Format("2006-01-02T15:04:05-0700") {
 			return true
 		}
 	}
@@ -128,14 +136,25 @@ func main() {
 		log.Fatal(err)
 	}
 
-	
+	var dbTrackHistory []*DBRow
+	rows, _ := conn.Query(context.Background(), `SELECT * FROM `+os.Getenv("DB_TABLE_NAME")+` WHERE user_id = ($1) ORDER BY played_at DESC LIMIT 50;`, userId)
+	if err := pgxscan.ScanAll(&dbTrackHistory, rows); err != nil {
+		log.Fatal(err)
+	}
+
+	var remainingTracks []TrackDetails
+	for _, track := range trackHistory {
+		if !Contains(dbTrackHistory, track) {
+			remainingTracks = append(remainingTracks, track)
+		}
+	}
 
 	copyCount, err := conn.CopyFrom(
 		context.Background(),
 		pgx.Identifier{os.Getenv("DB_TABLE_NAME")},
 		[]string{"uri", "played_at", "user_id"},
-		pgx.CopyFromSlice(len(trackHistory), func(i int) ([]any, error) {
-			return []any{trackHistory[i].URI, trackHistory[i].PlayedAt.Format("2006-01-02T15:04:05-0700"), userId}, nil
+		pgx.CopyFromSlice(len(remainingTracks), func(i int) ([]any, error) {
+			return []any{remainingTracks[i].URI, remainingTracks[i].PlayedAt.Format("2006-01-02T15:04:05-0700"), userId}, nil
 		}),
 	)
 	if err != nil {
