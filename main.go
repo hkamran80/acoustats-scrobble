@@ -43,7 +43,7 @@ type TrackDetails struct {
 }
 
 type DBRow struct {
-	ID       int8      `db:"id"`
+	ID       int32     `db:"id"`
 	URI      string    `db:"uri"`
 	PlayedAt string    `db:"played_at"`
 	UserId   uuid.UUID `db:"user_id"`
