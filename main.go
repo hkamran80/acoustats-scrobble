@@ -128,6 +128,7 @@ func main() {
 		}
 	}
 
+	// TODO: Add length check
 	copyCount, err := conn.CopyFrom(
 		context.Background(),
 		pgx.Identifier{os.Getenv("DB_TABLE_NAME")},
