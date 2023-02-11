@@ -161,5 +161,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println(copyCount)
+	log.Printf("Uploaded %d tracks to database!", copyCount)
 }
