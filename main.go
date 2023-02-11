@@ -78,6 +78,7 @@ func main() {
 		}
 	}
 
+	// TODO: Update redirect URL
 	auth := spotifyauth.New(spotifyauth.WithRedirectURL("http://localhost:8080/callback"), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadRecentlyPlayed))
 	state := strconv.FormatInt(time.Now().Unix(), 10)
 	ctx := context.Background()
