@@ -108,14 +108,14 @@ func convertUrlToToken(ctx context.Context, url url.URL, state string, auth spot
 
 // Saves an OAuth2 token to a JSON file named `token.json`
 func saveToken(token *oauth2.Token) {
-	file, jsonErr := json.MarshalIndent(token, "", " ")
-	if jsonErr != nil {
-		log.Println(jsonErr)
+	content, err := json.Marshal(token)
+	if err != nil {
+		panic(err)
 	}
 
-	writeErr := os.WriteFile(TokenFilePath, file, 0644)
+	writeErr := os.WriteFile(TokenFilePath, content, 0644)
 	if writeErr != nil {
-		log.Println(writeErr)
+		panic(writeErr)
 	}
 }
 
