@@ -21,8 +21,6 @@ package main
 import (
 	"context"
 
-	"strings"
-
 	"os"
 	"strconv"
 	"time"
@@ -64,12 +62,11 @@ func Contains(s []*DBRow, track TrackDetails) bool {
 func checkIfEnvVarsLoaded() bool {
 	spotifyId := os.Getenv("SPOTIFY_ID")
 	spotifySecret := os.Getenv("SPOTIFY_SECRET")
-	fetchRange := os.Getenv("RANGE")
 	userId := os.Getenv("USER_ID")
 	dbUri := os.Getenv("DB_URI")
 	dbTableName := os.Getenv("DB_TABLE_NAME")
 
-	return spotifyId != "" && spotifySecret != "" && fetchRange != "" && userId != "" && dbUri != "" && dbTableName != ""
+	return spotifyId != "" && spotifySecret != "" && userId != "" && dbUri != "" && dbTableName != ""
 }
 
 func main() {
@@ -79,12 +76,6 @@ func main() {
 		if err != nil {
 			log.Fatal("Error loading .env file")
 		}
-	}
-
-	fetchRange := strings.ToLower(os.Getenv("RANGE"))
-	if fetchRange != "day" && fetchRange != "month" && fetchRange != "year" {
-		log.Println("Invalid `fetchRange` parameter, defaulting to \"month\"...")
-		fetchRange = "month"
 	}
 
 	auth := spotifyauth.New(spotifyauth.WithRedirectURL("http://localhost:8080/callback"), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadRecentlyPlayed))
@@ -99,19 +90,8 @@ func main() {
 	}
 
 	log.Printf("Logged in as %s (%s)", user.ID, user.DisplayName)
-	log.Printf("Loading recent tracks for this %s", fetchRange)
 
-	var date time.Time
-	currentDate := time.Now()
-	if fetchRange == "year" {
-		date = time.Date(currentDate.Year(), 1, 1, 0, 0, 0, 0, time.Local)
-	} else if fetchRange == "month" {
-		date = time.Date(currentDate.Year(), currentDate.Month(), 1, 0, 0, 0, 0, time.Local)
-	} else if fetchRange == "day" {
-		date = time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 0, 0, 0, 0, time.Local)
-	}
-
-	recentlyPlayedTracks, err := client.PlayerRecentlyPlayedOpt(ctx, &spotify.RecentlyPlayedOptions{Limit: 50, AfterEpochMs: date.Unix()})
+	recentlyPlayedTracks, err := client.PlayerRecentlyPlayedOpt(ctx, &spotify.RecentlyPlayedOptions{Limit: 50})
 	if err != nil {
 		log.Fatal(err)
 	}
