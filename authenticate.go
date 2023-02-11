@@ -38,7 +38,7 @@ import (
 // TODO: Add environment variable option to change token path
 const TokenFilePath = "token.json"
 
-// Authenticate signs a user in
+// Sign a user in
 func Authenticate(ctx context.Context, auth spotifyauth.Authenticator, state string) *spotify.Client {
 	var token *oauth2.Token
 
@@ -60,7 +60,7 @@ func Authenticate(ctx context.Context, auth spotifyauth.Authenticator, state str
 	return client
 }
 
-// getNewToken gets a new token from the Spotify API
+// Gets a new token from the Spotify API
 func getNewToken(ctx context.Context, auth spotifyauth.Authenticator, state string) *oauth2.Token {
 	authUrl := auth.AuthURL(state)
 	fmt.Println("Please log in to Spotify by visiting the following page in your browser:", authUrl)
@@ -106,7 +106,7 @@ func convertUrlToToken(ctx context.Context, url url.URL, state string, auth spot
 	return auth.Exchange(ctx, code)
 }
 
-// saveToken saves an OAuth2 token to a JSON file named `token.json`
+// Saves an OAuth2 token to a JSON file named `token.json`
 func saveToken(token *oauth2.Token) {
 	file, jsonErr := json.MarshalIndent(token, "", " ")
 	if jsonErr != nil {
@@ -119,7 +119,7 @@ func saveToken(token *oauth2.Token) {
 	}
 }
 
-// loadToken loads an OAuth2 token from a JSON file named `token.json`
+// Loads an OAuth2 token from a JSON file named `token.json`
 func loadToken() (*oauth2.Token, error) {
 	file, readErr := os.ReadFile(TokenFilePath)
 	if readErr != nil {
