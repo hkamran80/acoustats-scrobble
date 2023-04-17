@@ -34,6 +34,7 @@ import (
 
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 
+	"github.com/frozzare/go-healthchecks"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -76,6 +77,15 @@ func main() {
 		}
 	}
 
+	healthchecksClient := healthchecks.NewClient(nil)
+	healthchecksUuid := os.Getenv("HEALTHCHECKS_UUID")
+	if healthchecksUuid != "" {
+		err := healthchecksClient.Start(context.Background(), healthchecksUuid)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	// TODO: Update redirect URL
 	auth := spotifyauth.New(spotifyauth.WithRedirectURL("http://localhost:8080/callback"), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadRecentlyPlayed))
 	state := strconv.FormatInt(time.Now().Unix(), 10)
@@ -93,6 +103,13 @@ func main() {
 	recentlyPlayedTracks, err := client.PlayerRecentlyPlayedOpt(ctx, &spotify.RecentlyPlayedOptions{Limit: 50})
 	if err != nil {
 		log.Fatal(err)
+
+		if healthchecksUuid != "" {
+			err := healthchecksClient.Fail(context.Background(), healthchecksUuid)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 
 	var trackHistory []TrackDetails
@@ -106,6 +123,13 @@ func main() {
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DB_URI"))
 	if err != nil {
 		log.Fatal(err)
+
+		if healthchecksUuid != "" {
+			err := healthchecksClient.Fail(context.Background(), healthchecksUuid)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 
 	defer conn.Close(context.Background())
@@ -113,12 +137,26 @@ func main() {
 	userId, err := uuid.Parse(os.Getenv("USER_ID"))
 	if err != nil {
 		log.Fatal(err)
+
+		if healthchecksUuid != "" {
+			err := healthchecksClient.Fail(context.Background(), healthchecksUuid)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 
 	var dbTrackHistory []*DBRow
 	rows, _ := conn.Query(context.Background(), `SELECT uri, played_at FROM `+os.Getenv("DB_TABLE_NAME")+` WHERE user_id = ($1) ORDER BY played_at DESC LIMIT 50;`, userId)
 	if err := pgxscan.ScanAll(&dbTrackHistory, rows); err != nil {
 		log.Fatal(err)
+
+		if healthchecksUuid != "" {
+			err := healthchecksClient.Fail(context.Background(), healthchecksUuid)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 
 	var remainingTracks []TrackDetails
@@ -139,7 +177,20 @@ func main() {
 	)
 	if err != nil {
 		log.Fatal(err)
+
+		if healthchecksUuid != "" {
+			err := healthchecksClient.Fail(context.Background(), healthchecksUuid)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 
 	log.Printf("Uploaded %d tracks to database!", copyCount)
+	if healthchecksUuid != "" {
+		err := healthchecksClient.Success(context.Background(), healthchecksUuid)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }

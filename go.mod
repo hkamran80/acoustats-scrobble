@@ -17,6 +17,7 @@ require (
 )
 
 require (
+	github.com/frozzare/go-healthchecks v0.0.0-20191125100137-623b9cfcd44b
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
